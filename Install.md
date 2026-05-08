@@ -1,10 +1,10 @@
-# DeerFlow Install
+# DeerFlow Mini — Install Guide
 
-This file is for coding agents. If the DeerFlow repository is not already cloned and open, clone `https://github.com/bytedance/deer-flow.git` first, then continue from the repository root.
+This file is for coding agents. If the DeerFlow Mini repository is not already cloned and open, clone it first, then continue from the repository root.
 
 ## Goal
 
-Bootstrap a DeerFlow local development workspace on the user's machine with the least risky path available.
+Bootstrap a DeerFlow Mini local development workspace on the user's machine with the least risky path available.
 
 Default preference:
 
@@ -22,11 +22,22 @@ Do not assume API keys or model credentials exist. Set up everything that can be
 - If a step fails, stop, explain the blocker, and provide the smallest next action.
 - If multiple setup paths are possible, prefer Docker when Docker is already available.
 
+## LLM Provider Options
+
+DeerFlow Mini supports these LLM providers via `make setup`:
+
+1. **OpenAI** — GPT-4o, GPT-4.1, o3
+2. **Google Gemini** — Gemini 2.0 Flash, 2.5 Pro
+3. **OpenRouter** — OpenAI-compatible gateway with broad model catalog
+4. **Other OpenAI-compatible** — vLLM, Ollama, LiteLLM, or any custom endpoint with `base_url`
+
+Web search uses **SearXNG** (local, no API key). Web fetch uses **local fetch** (httpx + readabilipy, no API key).
+
 ## Success Criteria
 
 Consider the setup successful when all of the following are true:
 
-- The DeerFlow repository is cloned and the current working directory is the repo root.
+- The DeerFlow Mini repository is cloned and the current working directory is the repo root.
 - `config.yaml` exists.
 - For Docker setup, `make docker-init` completed successfully and Docker prerequisites are prepared, but services are not assumed to be running yet.
 - For local setup, `make check` passed or reported no missing prerequisites, and `make install` completed successfully.
@@ -35,25 +46,24 @@ Consider the setup successful when all of the following are true:
 
 ## Steps
 
-- If the current directory is not the DeerFlow repository root, clone `https://github.com/bytedance/deer-flow.git` if needed, then change into the repository root.
-- Confirm the current directory is the DeerFlow repository root by checking that `Makefile`, `backend/`, `frontend/`, and `config.example.yaml` exist.
+- If the current directory is not the DeerFlow Mini repository root, clone the repo if needed, then change into the repository root.
+- Confirm the current directory is the DeerFlow Mini repository root by checking that `Makefile`, `backend/`, `frontend/`, and `config.example.yaml` exist.
 - Detect whether `config.yaml` already exists.
-- If `config.yaml` does not exist, run `make config`.
+- If `config.yaml` does not exist, run `make setup` (interactive wizard) or `make config` (copies template).
 - Detect whether Docker is available and the daemon is reachable with `docker info`.
 - If Docker is available:
   - Run `make docker-init`.
   - Treat this as Docker prerequisite preparation only. Do not claim that app services, compose validation, or image builds have already succeeded.
-  - Do not start long-running services unless the user explicitly asks or this setup request clearly includes launch verification.
+  - Do not start long-running services unless the user explicitly asks.
   - Tell the user the recommended next command is `make docker-start`.
 - If Docker is not available:
   - Run `make check`.
-  - If `make check` reports missing system dependencies such as `node`, `pnpm`, `uv`, or `nginx`, stop and report the missing tools instead of attempting privileged installs.
+  - If `make check` reports missing system dependencies such as `node`, `pnpm`, `uv`, or `nginx`, stop and report the missing tools.
   - If prerequisites are satisfied, run `make install`.
   - Tell the user the recommended next command is `make dev`.
 - Inspect `config.yaml` only for missing model entries or referenced environment variable placeholders. Do not read `.env`, `frontend/.env`, or other secret-bearing files.
 - If no model is configured, tell the user they must add at least one entry under `models` in `config.yaml`.
-- If `config.yaml` references variables such as `$OPENAI_API_KEY`, tell the user which variable names still need real values, but do not verify them by opening secret-bearing files.
-- If the repository already appears configured, avoid repeating expensive work unless it is necessary to verify the environment.
+- If `config.yaml` references variables such as `$OPENAI_API_KEY`, tell the user which variable names still need real values.
 
 ## Verification
 
@@ -64,13 +74,12 @@ For Docker setup:
 - Confirm `make docker-init` completed successfully.
 - Confirm `config.yaml` exists.
 - State explicitly that Docker services were not started and `make docker-start` is still the first real launch step.
-- Do not leave background services running unless the user asked for that.
 
 For local setup:
 
 - Confirm `make install` completed successfully.
 - Confirm `config.yaml` exists.
-- Do not leave background services running unless the user asked for that.
+- Do not leave background services running.
 
 ## Final Response Format
 
@@ -79,9 +88,9 @@ Return a short status report with:
 1. Setup path used: Docker or local
 2. Setup level reached: Docker prerequisites prepared or local dependencies installed
 3. Files created or detected: for example `config.yaml`
-4. Remaining user action: model config, env var values, auth files, or nothing
+4. Remaining user action: model config, env var values, or nothing
 5. Exact next command to start DeerFlow
 
 ## EXECUTE NOW
 
-Complete the steps above. When finished, stop after the setup boundary and report status instead of continuing into unrelated project work.
+Complete the steps above. When finished, stop after the setup boundary and report status.
