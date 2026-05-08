@@ -127,6 +127,29 @@ if [ -z "$BETTER_AUTH_SECRET" ]; then
     fi
 fi
 
+# ── AUTH_JWT_SECRET ──────────────────────────────────────────────────────────
+# Required by the gateway for JWT signing. With multi-worker uvicorn
+# (--workers N), each worker process independently initialises its auth
+# config. Without a shared secret the ephemeral fallback generates a
+# different key per worker, so a token signed by worker A is rejected by
+# worker B — causing immediate logouts after every login.
+# Generated once and persisted so sessions survive container restarts.
+
+_jwt_secret_file="$DEER_FLOW_HOME/.auth-jwt-secret"
+if [ -z "$AUTH_JWT_SECRET" ]; then
+    if [ -f "$_jwt_secret_file" ]; then
+        export AUTH_JWT_SECRET
+        AUTH_JWT_SECRET="$(cat "$_jwt_secret_file")"
+        echo -e "${GREEN}✓ AUTH_JWT_SECRET loaded from $_jwt_secret_file${NC}"
+    else
+        export AUTH_JWT_SECRET
+        AUTH_JWT_SECRET="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+        echo "$AUTH_JWT_SECRET" > "$_jwt_secret_file"
+        chmod 600 "$_jwt_secret_file"
+        echo -e "${GREEN}✓ AUTH_JWT_SECRET generated → $_jwt_secret_file${NC}"
+    fi
+fi
+
 # ── detect_sandbox_mode ───────────────────────────────────────────────────────
 
 detect_sandbox_mode() {
@@ -173,6 +196,7 @@ if [ "$CMD" = "down" ]; then
     export DEER_FLOW_DOCKER_SOCKET="${DEER_FLOW_DOCKER_SOCKET:-/var/run/docker.sock}"
     export DEER_FLOW_REPO_ROOT="${DEER_FLOW_REPO_ROOT:-$REPO_ROOT}"
     export BETTER_AUTH_SECRET="${BETTER_AUTH_SECRET:-placeholder}"
+    export AUTH_JWT_SECRET="${AUTH_JWT_SECRET:-placeholder}"
     "${COMPOSE_CMD[@]}" down
     exit 0
 fi
@@ -186,10 +210,11 @@ if [ "$CMD" = "build" ]; then
     echo "=========================================="
     echo ""
 
-    # Docker socket is needed for compose to parse volume specs
+    # Docker socket and JWT secret are needed for compose to parse volume/env specs
     if [ -z "$DEER_FLOW_DOCKER_SOCKET" ]; then
         export DEER_FLOW_DOCKER_SOCKET="/var/run/docker.sock"
     fi
+    export AUTH_JWT_SECRET="${AUTH_JWT_SECRET:-placeholder}"
 
     "${COMPOSE_CMD[@]}" build
 

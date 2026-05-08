@@ -77,7 +77,7 @@ export default function SetupPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          email,
+          email: email.trim(),
           password: newPassword,
         }),
       });
@@ -123,7 +123,7 @@ export default function SetupPage() {
         body: JSON.stringify({
           current_password: currentPassword,
           new_password: newPassword,
-          new_email: email || undefined,
+          new_email: email?.trim() || undefined,
         }),
       });
 

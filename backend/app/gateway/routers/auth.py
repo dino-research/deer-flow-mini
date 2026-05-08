@@ -103,12 +103,40 @@ def _validate_strong_password(value: str) -> str:
     return value
 
 
+def _validate_email_strict(value: str) -> str:
+    """Reject emails with non-ASCII domain parts.
+
+    Pydantic ``EmailStr`` delegates to the ``email-validator`` library,
+    which intentionally permits internationalised domain names (IDN).
+    Our frontend Zod schema (``z.string().email()``) uses a stricter
+    RFC-5321-style regex that rejects Unicode in the domain.  If we let
+    an IDN email through here, the user will be saved to the DB but
+    subsequent SSR auth checks will fail, rendering the app unusable.
+
+    Stripping whitespace also guards against trailing spaces / line-feeds
+    injected by input-method editors.
+    """
+    value = value.strip()
+    _, _, domain = value.rpartition("@")
+    if not domain:
+        raise ValueError("Invalid email address")
+    try:
+        domain.encode("ascii")
+    except UnicodeEncodeError:
+        raise ValueError(
+            "Email domain must contain only ASCII characters. "
+            "International domain names are not supported."
+        )
+    return value
+
+
 class RegisterRequest(BaseModel):
     """Request model for user registration."""
 
     email: EmailStr
     password: str = Field(..., min_length=8)
 
+    _clean_email = field_validator("email")(classmethod(lambda cls, v: _validate_email_strict(v)))
     _strong_password = field_validator("password")(classmethod(lambda cls, v: _validate_strong_password(v)))
 
 
@@ -423,6 +451,7 @@ class InitializeAdminRequest(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8)
 
+    _clean_email = field_validator("email")(classmethod(lambda cls, v: _validate_email_strict(v)))
     _strong_password = field_validator("password")(classmethod(lambda cls, v: _validate_strong_password(v)))
 
 

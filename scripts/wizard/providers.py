@@ -97,10 +97,10 @@ LLM_PROVIDERS: list[LLMProvider] = [
 
 SEARCH_PROVIDERS: list[SearchProvider] = [
     SearchProvider(
-        name="searxng",
-        display_name="SearXNG (local, no key needed)",
-        description="Self-hosted meta search engine via Docker",
-        use="deerflow.community.searxng.tools:web_search_tool",
+        name="ddg_search",
+        display_name="DuckDuckGo (no Docker, no key needed)",
+        description="Lightweight web search via duckduckgo-search Python package",
+        use="deerflow.community.ddg_search.tools:web_search_tool",
         env_var=None,
         extra_config={"max_results": 5},
     ),

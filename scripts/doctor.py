@@ -417,7 +417,10 @@ def check_web_tool(config_path: Path, *, tool_name: str, label: str) -> CheckRes
             )
 
         free_providers = {
-            "web_search": {"searxng": "SearXNG (no key needed)"},
+            "web_search": {
+                "ddg_search": "DuckDuckGo (no key needed)",
+                "searxng": "SearXNG (no key needed)",
+            },
             "web_fetch": {"local_fetch": "Local fetch (no key needed)"},
         }
         key_providers: dict[str, dict[str, str]] = {

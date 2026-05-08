@@ -44,10 +44,10 @@ export default async function WorkspaceLayout({
               Retry
             </Link>
             <Link
-              href="/api/v1/auth/logout"
+              href="/login"
               className="text-muted-foreground hover:bg-muted rounded-md border px-4 py-2 text-sm"
             >
-              Logout &amp; Reset
+              Back to Login
             </Link>
           </div>
         </div>

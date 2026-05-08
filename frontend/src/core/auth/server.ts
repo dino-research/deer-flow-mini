@@ -73,9 +73,15 @@ export async function getServerSideUser(): Promise<AuthResult> {
     clearTimeout(timeout); // Clear immediately — covers all response branches
 
     if (res.ok) {
-      const parsed = userSchema.safeParse(await res.json());
+      const rawData = await res.json();
+      const parsed = userSchema.safeParse(rawData);
       if (!parsed.success) {
-        console.error("[SSR auth] Malformed /auth/me response:", parsed.error);
+        console.error(
+          "[SSR auth] Malformed /auth/me response:",
+          parsed.error,
+          "Raw data:",
+          JSON.stringify(rawData),
+        );
         return { tag: "gateway_unavailable" };
       }
       if (parsed.data.needs_setup) {
