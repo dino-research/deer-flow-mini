@@ -5,7 +5,7 @@ from langchain.chat_models import BaseChatModel
 from deerflow.config import get_app_config
 from deerflow.config.app_config import AppConfig
 from deerflow.reflection import resolve_class
-from deerflow.tracing import build_tracing_callbacks
+
 
 logger = logging.getLogger(__name__)
 
@@ -116,27 +116,7 @@ def create_chat_model(name: str | None = None, thinking_enabled: bool = False, *
 
     _enable_stream_usage_by_default(model_config.use, model_settings_from_config)
 
-    # For Codex Responses API models: map thinking mode to reasoning_effort
-    from deerflow.models.openai_codex_provider import CodexChatModel
 
-    if issubclass(model_class, CodexChatModel):
-        # The ChatGPT Codex endpoint currently rejects max_tokens/max_output_tokens.
-        model_settings_from_config.pop("max_tokens", None)
-
-        # Use explicit reasoning_effort from frontend if provided (low/medium/high)
-        explicit_effort = kwargs.pop("reasoning_effort", None)
-        if not thinking_enabled:
-            model_settings_from_config["reasoning_effort"] = "none"
-        elif explicit_effort and explicit_effort in ("low", "medium", "high", "xhigh"):
-            model_settings_from_config["reasoning_effort"] = explicit_effort
-        elif "reasoning_effort" not in model_settings_from_config:
-            model_settings_from_config["reasoning_effort"] = "medium"
-
-    # For MindIE models: enforce conservative retry defaults.
-    # Timeout normalization is handled inside MindIEChatModel itself.
-    if getattr(model_class, "__name__", "") == "MindIEChatModel":
-        # Enforce max_retries constraint to prevent cascading timeouts.
-        model_settings_from_config["max_retries"] = model_settings_from_config.get("max_retries", 1)
 
     # Ensure stream_usage is enabled so that token usage metadata is available
     # in streaming responses.  LangChain's BaseChatOpenAI only defaults
@@ -148,10 +128,4 @@ def create_chat_model(name: str | None = None, thinking_enabled: bool = False, *
             model_settings_from_config["stream_usage"] = True
 
     model_instance = model_class(**kwargs, **model_settings_from_config)
-
-    callbacks = build_tracing_callbacks()
-    if callbacks:
-        existing_callbacks = model_instance.callbacks or []
-        model_instance.callbacks = [*existing_callbacks, *callbacks]
-        logger.debug(f"Tracing attached to model '{name}' with providers={len(callbacks)}")
     return model_instance
