@@ -286,11 +286,6 @@ def _build_middlewares(
     if model_config is not None and model_config.supports_vision:
         middlewares.append(ViewImageMiddleware())
 
-    # Add DeferredToolFilterMiddleware to hide deferred tool schemas from model binding
-    if resolved_app_config.tool_search.enabled:
-        from deerflow.agents.middlewares.deferred_tool_filter_middleware import DeferredToolFilterMiddleware
-
-        middlewares.append(DeferredToolFilterMiddleware())
 
     # Add SubagentLimitMiddleware to truncate excess parallel task calls
     subagent_enabled = cfg.get("subagent_enabled", False)
