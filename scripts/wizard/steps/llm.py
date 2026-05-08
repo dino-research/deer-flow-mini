@@ -42,7 +42,7 @@ def run_llm_step(step_label: str = "Step 1/3") -> LLMStepResult:
 
     print()
     base_url: str | None = None
-    if provider.name in {"openrouter", "vllm"}:
+    if provider.name == "openrouter":
         base_url = provider.extra_config.get("base_url")
     if provider.name == "other":
         print_header(f"{step_label} · Connection details")

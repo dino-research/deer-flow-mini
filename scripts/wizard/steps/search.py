@@ -20,6 +20,7 @@ def run_search_step(step_label: str = "Step 3/3") -> SearchStepResult:
     print_header(f"{step_label} · Web Search & Fetch (optional)")
     provided_keys: dict[str, str] = {}
 
+    # ── Web search provider ──────────────────────────────────────────────────
     search_options = [f"{p.display_name}  —  {p.description}" for p in SEARCH_PROVIDERS]
     search_options.append("Skip for now  (agent still works without web search)")
 
@@ -37,6 +38,7 @@ def run_search_step(step_label: str = "Step 3/3") -> SearchStepResult:
             provided_keys[search_provider.env_var] = search_api_key
             print_success(f"Key will be saved to .env as {search_provider.env_var}")
 
+    # ── Web fetch provider ───────────────────────────────────────────────────
     print()
     fetch_options = [f"{p.display_name}  —  {p.description}" for p in WEB_FETCH_PROVIDERS]
     fetch_options.append("Skip for now  (agent can still answer without web fetch)")

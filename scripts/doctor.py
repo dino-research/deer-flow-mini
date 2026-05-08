@@ -379,64 +379,14 @@ def check_llm_package(config_path: Path) -> list[CheckResult]:
 
 
 def check_llm_auth(config_path: Path) -> list[CheckResult]:
+    """Check provider-specific auth (beyond simple env vars).
+
+    Note: Codex CLI and Claude Code OAuth providers were removed in the
+    deer-flow-mini minimisation.  Only standard env-var auth remains.
+    """
     if not config_path.exists():
         return []
-
-    results: list[CheckResult] = []
-    try:
-        data = _load_yaml_file(config_path)
-        for model in data.get("models", []):
-            use = model.get("use", "")
-            model_name = model.get("name", "default")
-
-            if use == "deerflow.models.openai_codex_provider:CodexChatModel":
-                auth_path = Path(os.environ.get("CODEX_AUTH_PATH", "~/.codex/auth.json")).expanduser()
-                if auth_path.exists():
-                    results.append(CheckResult(f"Codex CLI auth available (model: {model_name})", "ok", str(auth_path)))
-                else:
-                    results.append(
-                        CheckResult(
-                            f"Codex CLI auth available (model: {model_name})",
-                            "fail",
-                            str(auth_path),
-                            fix="Run `codex login`, or set CODEX_AUTH_PATH to a valid auth.json",
-                        )
-                    )
-
-            if use == "deerflow.models.claude_provider:ClaudeChatModel":
-                credential_paths = [
-                    Path(os.environ["CLAUDE_CODE_CREDENTIALS_PATH"]).expanduser()
-                    for env_name in ("CLAUDE_CODE_CREDENTIALS_PATH",)
-                    if os.environ.get(env_name)
-                ]
-                credential_paths.append(Path("~/.claude/.credentials.json").expanduser())
-                has_oauth_env = any(
-                    os.environ.get(name)
-                    for name in (
-                        "ANTHROPIC_API_KEY",
-                        "CLAUDE_CODE_OAUTH_TOKEN",
-                        "ANTHROPIC_AUTH_TOKEN",
-                        "CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR",
-                    )
-                )
-                existing_path = next((path for path in credential_paths if path.exists()), None)
-                if has_oauth_env or existing_path is not None:
-                    detail = "env var set" if has_oauth_env else str(existing_path)
-                    results.append(CheckResult(f"Claude auth available (model: {model_name})", "ok", detail))
-                else:
-                    results.append(
-                        CheckResult(
-                            f"Claude auth available (model: {model_name})",
-                            "fail",
-                            fix=(
-                                "Set ANTHROPIC_API_KEY / CLAUDE_CODE_OAUTH_TOKEN, "
-                                "or place credentials at ~/.claude/.credentials.json"
-                            ),
-                        )
-                    )
-    except Exception as exc:
-        results.append(CheckResult("LLM auth check", "fail", str(exc)))
-    return results
+    return []
 
 
 def check_web_search(config_path: Path) -> CheckResult:
@@ -467,21 +417,12 @@ def check_web_tool(config_path: Path, *, tool_name: str, label: str) -> CheckRes
             )
 
         free_providers = {
-            "web_search": {"ddg_search": "DuckDuckGo (no key needed)"},
-            "web_fetch": {"jina_ai": "Jina AI Reader (no key needed)"},
+            "web_search": {"searxng": "SearXNG (no key needed)"},
+            "web_fetch": {"local_fetch": "Local fetch (no key needed)"},
         }
-        key_providers = {
-            "web_search": {
-                "tavily": "TAVILY_API_KEY",
-                "infoquest": "INFOQUEST_API_KEY",
-                "exa": "EXA_API_KEY",
-                "firecrawl": "FIRECRAWL_API_KEY",
-            },
-            "web_fetch": {
-                "infoquest": "INFOQUEST_API_KEY",
-                "exa": "EXA_API_KEY",
-                "firecrawl": "FIRECRAWL_API_KEY",
-            },
+        key_providers: dict[str, dict[str, str]] = {
+            "web_search": {},
+            "web_fetch": {},
         }
 
         for use in tool_uses:
