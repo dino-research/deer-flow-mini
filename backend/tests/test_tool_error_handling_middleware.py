@@ -11,7 +11,6 @@ from deerflow.agents.middlewares.tool_error_handling_middleware import (
 )
 from deerflow.agents.middlewares.view_image_middleware import ViewImageMiddleware
 from deerflow.config.app_config import AppConfig, CircuitBreakerConfig
-from deerflow.config.guardrails_config import GuardrailsConfig
 from deerflow.config.model_config import ModelConfig
 from deerflow.config.sandbox_config import SandboxConfig
 
@@ -43,7 +42,6 @@ def _make_app_config(*, supports_vision: bool = False) -> AppConfig:
             )
         ],
         sandbox=SandboxConfig(use="test"),
-        guardrails=GuardrailsConfig(enabled=False),
         circuit_breaker=CircuitBreakerConfig(failure_threshold=7, recovery_timeout_sec=11),
     )
 

@@ -9,17 +9,14 @@ import yaml
 from pydantic import ValidationError
 
 import deerflow.config.app_config as app_config_module
-from deerflow.config.acp_config import load_acp_config_from_dict
 from deerflow.config.agents_api_config import get_agents_api_config, load_agents_api_config_from_dict
 from deerflow.config.app_config import AppConfig, get_app_config, reset_app_config
 from deerflow.config.checkpointer_config import get_checkpointer_config, load_checkpointer_config_from_dict
-from deerflow.config.guardrails_config import get_guardrails_config, load_guardrails_config_from_dict
 from deerflow.config.memory_config import get_memory_config, load_memory_config_from_dict
 from deerflow.config.stream_bridge_config import get_stream_bridge_config, load_stream_bridge_config_from_dict
 from deerflow.config.subagents_config import get_subagents_app_config, load_subagents_config_from_dict
 from deerflow.config.summarization_config import get_summarization_config, load_summarization_config_from_dict
 from deerflow.config.title_config import get_title_config, load_title_config_from_dict
-from deerflow.config.tool_search_config import get_tool_search_config, load_tool_search_config_from_dict
 from deerflow.runtime.checkpointer import get_checkpointer, reset_checkpointer
 from deerflow.runtime.store import get_store, reset_store
 
@@ -30,11 +27,8 @@ def _reset_config_singletons() -> None:
     load_memory_config_from_dict({})
     load_agents_api_config_from_dict({})
     load_subagents_config_from_dict({})
-    load_tool_search_config_from_dict({})
-    load_guardrails_config_from_dict({})
     load_checkpointer_config_from_dict(None)
     load_stream_bridge_config_from_dict(None)
-    load_acp_config_from_dict({})
     reset_checkpointer()
     reset_store()
     reset_app_config()
@@ -235,8 +229,6 @@ def test_get_app_config_resets_singleton_configs_when_sections_removed(tmp_path,
             "summarization": {"enabled": True},
             "memory": {"enabled": False, "max_facts": 50},
             "subagents": {"timeout_seconds": 42, "agents": {"reviewer": {"max_turns": 2}}},
-            "tool_search": {"enabled": True},
-            "guardrails": {"enabled": True, "fail_closed": False},
             "checkpointer": {"type": "memory"},
             "stream_bridge": {"type": "memory", "queue_maxsize": 12},
         },
@@ -252,8 +244,6 @@ def test_get_app_config_resets_singleton_configs_when_sections_removed(tmp_path,
         assert get_summarization_config().enabled is True
         assert get_memory_config().enabled is False
         assert get_subagents_app_config().timeout_seconds == 42
-        assert get_tool_search_config().enabled is True
-        assert get_guardrails_config().enabled is True
         assert get_checkpointer_config() is not None
         assert get_stream_bridge_config() is not None
 
@@ -266,8 +256,6 @@ def test_get_app_config_resets_singleton_configs_when_sections_removed(tmp_path,
         assert get_summarization_config().enabled is False
         assert get_memory_config().enabled is True
         assert get_subagents_app_config().timeout_seconds == 900
-        assert get_tool_search_config().enabled is False
-        assert get_guardrails_config().enabled is False
         assert get_checkpointer_config() is None
         assert get_stream_bridge_config() is None
     finally:
@@ -351,7 +339,6 @@ def test_get_app_config_does_not_mutate_singletons_when_reload_validation_fails(
         config_path,
         {
             "title": {"enabled": False},
-            "tool_search": {"enabled": True},
             "checkpointer": {"type": "memory"},
         },
     )
@@ -369,7 +356,6 @@ def test_get_app_config_does_not_mutate_singletons_when_reload_validation_fails(
             config_path,
             {
                 "title": False,
-                "tool_search": False,
                 "checkpointer": {"type": "memory"},
             },
         )
@@ -381,7 +367,6 @@ def test_get_app_config_does_not_mutate_singletons_when_reload_validation_fails(
 
         assert app_config_module._app_config is previous_app_config
         assert get_title_config().enabled is False
-        assert get_tool_search_config().enabled is True
         assert get_checkpointer_config() is not None
         assert get_checkpointer() is initial_checkpointer
         assert get_store() is initial_store

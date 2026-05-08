@@ -255,11 +255,6 @@ def _assemble_from_features(
 
             chain.append(ViewImageMiddleware())
 
-        if feat.sandbox is not False:
-            from deerflow.tools.builtins import view_image_tool
-
-            extra_tools.append(view_image_tool)
-
     # --- [11] Subagent ---
     if feat.subagent is not False:
         if isinstance(feat.subagent, AgentMiddleware):

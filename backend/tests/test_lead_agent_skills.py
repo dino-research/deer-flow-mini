@@ -60,52 +60,6 @@ def test_get_skills_prompt_section_returns_all_when_available_skills_is_none(mon
     assert "skill2" in result
 
 
-def test_get_skills_prompt_section_includes_self_evolution_rules(monkeypatch):
-    skills = [_make_skill("skill1")]
-    monkeypatch.setattr("deerflow.agents.lead_agent.prompt._get_enabled_skills", lambda: skills)
-    monkeypatch.setattr(
-        "deerflow.config.get_app_config",
-        lambda: SimpleNamespace(
-            skills=SimpleNamespace(container_path="/mnt/skills"),
-            skill_evolution=SimpleNamespace(enabled=True),
-        ),
-    )
-
-    result = get_skills_prompt_section(available_skills=None)
-    assert "Skill Self-Evolution" in result
-
-
-def test_get_skills_prompt_section_includes_self_evolution_rules_without_skills(monkeypatch):
-    monkeypatch.setattr("deerflow.agents.lead_agent.prompt._get_enabled_skills", lambda: [])
-    monkeypatch.setattr(
-        "deerflow.config.get_app_config",
-        lambda: SimpleNamespace(
-            skills=SimpleNamespace(container_path="/mnt/skills"),
-            skill_evolution=SimpleNamespace(enabled=True),
-        ),
-    )
-
-    result = get_skills_prompt_section(available_skills=None)
-    assert "Skill Self-Evolution" in result
-
-
-def test_get_skills_prompt_section_cache_respects_skill_evolution_toggle(monkeypatch):
-    skills = [_make_skill("skill1")]
-    monkeypatch.setattr("deerflow.agents.lead_agent.prompt._get_enabled_skills", lambda: skills)
-    config = SimpleNamespace(
-        skills=SimpleNamespace(container_path="/mnt/skills"),
-        skill_evolution=SimpleNamespace(enabled=True),
-    )
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-
-    enabled_result = get_skills_prompt_section(available_skills=None)
-    assert "Skill Self-Evolution" in enabled_result
-
-    config.skill_evolution.enabled = False
-    disabled_result = get_skills_prompt_section(available_skills=None)
-    assert "Skill Self-Evolution" not in disabled_result
-
-
 def test_get_skills_prompt_section_uses_explicit_config_for_enabled_skills(monkeypatch):
     explicit_config = SimpleNamespace(
         skills=SimpleNamespace(container_path="/mnt/alt-skills"),
