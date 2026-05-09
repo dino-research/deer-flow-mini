@@ -157,9 +157,7 @@ def _build_available_subagents_description(available_names: list[str], bash_avai
     """Dynamically build subagent type descriptions from registry."""
     builtin_descriptions = {
         "general-purpose": "For ANY non-trivial task - web research, code exploration, file operations, analysis, etc.",
-        "bash": (
-            "For command execution (git, build, test, deploy operations)" if bash_available else "Not available in the current sandbox configuration."
-        ),
+        "bash": ("For command execution (git, build, test, deploy operations)" if bash_available else "Not available in the current sandbox configuration."),
     }
 
     from deerflow.subagents.registry import get_subagent_config
@@ -264,6 +262,9 @@ Sources section format: `[Title](URL) - Description` (standard markdown links, N
 - Clarification First: Always clarify unclear requirements BEFORE starting work
 {subagent_reminder}- Skill First: Load relevant skill before complex tasks
 - Output Files: Final deliverables must be in `/mnt/user-data/outputs`
+- HTML Artifacts: When generating HTML files, create **self-contained** files with ALL JavaScript and CSS inline. Do NOT use separate .js or .css files. External CDN links are OK.
+- Visual Output: Use `![desc](path)` for images and ```mermaid for diagrams. For data visualization, prefer the chart-visualization skill over raw HTML.
+- Multi-tool: Utilize parallel tool calling for better performance
 - Language Consistency: Match the user's language
 - Always Respond: Thinking is internal; always provide a visible response
 </critical_reminders>
@@ -419,18 +420,10 @@ def apply_prompt_template(
     subagent_section = _build_subagent_section(n, app_config=app_config) if subagent_enabled else ""
 
     # Add subagent reminder to critical_reminders if enabled
-    subagent_reminder = (
-        f"- **Orchestrator Mode**: Decompose complex tasks into parallel sub-tasks. Max {n} `task` calls per response.\n"
-        if subagent_enabled
-        else ""
-    )
+    subagent_reminder = f"- **Orchestrator Mode**: Decompose complex tasks into parallel sub-tasks. Max {n} `task` calls per response.\n" if subagent_enabled else ""
 
     # Add subagent thinking guidance if enabled
-    subagent_thinking = (
-        f"- **DECOMPOSITION CHECK**: Can this be broken into 2+ parallel sub-tasks? If count > {n}, batch across turns.\n"
-        if subagent_enabled
-        else ""
-    )
+    subagent_thinking = f"- **DECOMPOSITION CHECK**: Can this be broken into 2+ parallel sub-tasks? If count > {n}, batch across turns.\n" if subagent_enabled else ""
 
     # Get skills section
     skills_section = get_skills_prompt_section(available_skills, app_config=app_config)
