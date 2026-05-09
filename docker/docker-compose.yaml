@@ -74,6 +74,10 @@ services:
       - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/backend/extensions_config.json
       - SEARXNG_BASE_URL=http://searxng:8080
       - AUTH_JWT_SECRET=${AUTH_JWT_SECRET}
+      # DooD: AioSandboxProvider needs these to reach sandbox containers on host
+      - DEER_FLOW_SANDBOX_HOST=host.docker.internal
+      - DEER_FLOW_HOST_BASE_DIR=${DEER_FLOW_REPO_ROOT}/backend/.deer-flow
+      - DEER_FLOW_HOST_SKILLS_PATH=${DEER_FLOW_REPO_ROOT}/skills
     env_file:
       - ../.env
     extra_hosts:

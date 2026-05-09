@@ -103,9 +103,15 @@ uploads:
   pdf_converter: auto
 
 # ── Sandbox ──────────────────────────────────────────────────────────────────
+# AIO Sandbox: runs code in isolated Docker containers (Browser, Shell, File, VSCode)
+# Requires Docker socket mount for DooD (Docker-outside-of-Docker) mode.
+# See: https://github.com/agent-infra/sandbox
 sandbox:
-  use: deerflow.sandbox.local:LocalSandboxProvider
-  allow_host_bash: false
+  use: deerflow.community.aio_sandbox:AioSandboxProvider
+  image: enterprise-public-cn-beijing.cr.volces.com/vefaas-public/all-in-one-sandbox:latest
+  port: 8080                      # Base port for local containers
+  idle_timeout: 600               # Idle timeout in seconds (0 to disable)
+  replicas: 3                     # Max concurrent sandbox containers
   # Tuned for 32K context model
   bash_output_max_chars: 8000
   read_file_output_max_chars: 16000
